@@ -8,7 +8,7 @@ import {
   useState,
   startTransition,
 } from "react";
-import { playPhaseChime } from "@/lib/chime";
+import { playPhaseAlarm, primeAlarmAudio } from "@/lib/chime";
 import {
   createInitialState,
   pomodoroReducer,
@@ -58,7 +58,7 @@ export function usePomodoro() {
       );
       if (rem <= 0) {
         endAtRef.current = null;
-        playPhaseChime();
+        playPhaseAlarm();
         dispatch({ type: "PHASE_COMPLETE" });
         return;
       }
@@ -88,6 +88,7 @@ export function usePomodoro() {
   }, [state.mode, state.secondsRemaining]);
 
   const start = useCallback(() => {
+    primeAlarmAudio();
     endAtRef.current = Date.now() + state.secondsRemaining * 1000;
     dispatch({ type: "START" });
   }, [state.secondsRemaining]);

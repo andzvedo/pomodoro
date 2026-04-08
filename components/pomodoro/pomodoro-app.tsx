@@ -11,31 +11,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 import { usePomodoro } from "@/hooks/use-pomodoro";
 import { formatMmSs } from "@/lib/format-time";
 import { modeDurationSeconds } from "@/lib/pomodoro-reducer";
 import type { PomodoroMode, PomodoroSettings } from "@/lib/pomodoro-types";
 import { cn } from "@/lib/utils";
-import {
-  ListTodo,
-  Pause,
-  Play,
-  RotateCcw,
-  Settings2,
-  SkipForward,
-  StickyNote,
-} from "lucide-react";
+import { Pause, Play, RotateCcw, Settings2, SkipForward } from "lucide-react";
 
 function modeLabel(mode: PomodoroMode): string {
   switch (mode) {
@@ -70,8 +53,6 @@ function modeDescription(mode: PomodoroMode): string {
 export function PomodoroApp() {
   const { state, dispatch, start, pause, reset, skipPhase, hydrated } =
     usePomodoro();
-  const [taskInput, setTaskInput] = useState("");
-  const [distractionDraft, setDistractionDraft] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [draftSettings, setDraftSettings] = useState<PomodoroSettings>(
     state.settings,
@@ -125,9 +106,7 @@ export function PomodoroApp() {
       return;
     }
     if (
-      window.confirm(
-        "Reiniciar o temporizador e o ciclo atual? As tarefas permanecem.",
-      )
+      window.confirm("Reiniciar o temporizador e o ciclo atual?")
     ) {
       reset();
     }
@@ -140,8 +119,6 @@ export function PomodoroApp() {
     return { strokeDasharray: `${c}px`, strokeDashoffset: `${offset}px` };
   }, [progress]);
 
-  const activeTask = state.tasks.find((t) => t.id === state.activeTaskId);
-
   if (!hydrated) {
     return (
       <div className="flex min-h-screen items-center justify-center font-sans text-muted-foreground">
@@ -151,7 +128,7 @@ export function PomodoroApp() {
   }
 
   return (
-    <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-12 px-6 py-14 md:flex-row md:gap-16 md:px-10 lg:py-20">
+    <div className="relative mx-auto flex min-h-screen w-full flex-col items-center gap-12 px-6 py-14 md:px-10 lg:py-20">
       <header className="absolute right-6 top-8 md:right-10">
         <Dialog open={settingsOpen} onOpenChange={onSettingsOpenChange}>
           <DialogTrigger
@@ -231,7 +208,7 @@ export function PomodoroApp() {
                 />
               </div>
             </div>
-            <DialogFooter className="border-0 bg-transparent p-0 sm:justify-between">
+            <DialogFooter className="border-0 bg-transparent p-4 sm:justify-between">
               <Button
                 type="button"
                 variant="ghost"
@@ -254,8 +231,8 @@ export function PomodoroApp() {
         </Dialog>
       </header>
 
-      <section className="flex flex-1 flex-col items-start gap-10 md:max-w-xl">
-        <div>
+      <section className="flex w-full max-w-xl flex-col items-center gap-10 text-center">
+        <div className="w-full">
           <p className="font-heading text-xs font-medium uppercase tracking-[0.35em] text-muted-foreground">
             Técnica pomodoro
           </p>
@@ -264,7 +241,7 @@ export function PomodoroApp() {
             <br />
             foco profundo.
           </h1>
-          <p className="mt-6 max-w-md text-base leading-relaxed text-muted-foreground">
+          <p className="mx-auto mt-6 max-w-md text-base leading-relaxed text-muted-foreground">
             Blocos de trabalho com pausas deliberadas. Uma marcação por pomodoro
             concluído; ao quarto, pausa longa — como na versão original de
             Francesco Cirillo.
@@ -376,7 +353,7 @@ export function PomodoroApp() {
           </p>
         </div>
 
-        <div className="w-full rounded-lg border border-border/80 bg-card/60 px-5 py-4 text-sm text-muted-foreground backdrop-blur-sm">
+        <div className="w-full max-w-xl rounded-lg border border-border/80 bg-card/60 px-5 py-4 text-sm text-muted-foreground backdrop-blur-sm">
           <p>
             <span className="font-medium text-foreground">
               Marcações neste ciclo: {state.marksInCycle}
@@ -386,164 +363,6 @@ export function PomodoroApp() {
           </p>
         </div>
       </section>
-
-      <aside className="flex w-full flex-col gap-8 md:max-w-md md:pt-10">
-        <Card className="border-border/90 bg-card/80 shadow-none">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 font-heading text-lg font-semibold tracking-tight">
-              <ListTodo className="size-4 text-primary" aria-hidden />
-              Tarefas
-            </CardTitle>
-            <CardDescription>
-              Escolha o que faz neste momento. A tarefa ativa acompanha o foco.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <form
-              className="flex gap-2"
-              onSubmit={(e) => {
-                e.preventDefault();
-                dispatch({ type: "ADD_TASK", title: taskInput });
-                setTaskInput("");
-              }}
-            >
-              <Input
-                placeholder="Nova tarefa…"
-                value={taskInput}
-                onChange={(e) => setTaskInput(e.target.value)}
-                className="font-sans"
-              />
-              <Button type="submit" variant="secondary">
-                Adicionar
-              </Button>
-            </form>
-            <Separator />
-            <ul className="space-y-2">
-              {state.tasks.length === 0 ? (
-                <li className="text-sm text-muted-foreground">
-                  Nenhuma tarefa ainda. Escreva a primeira acima.
-                </li>
-              ) : (
-                state.tasks.map((t) => (
-                  <li
-                    key={t.id}
-                    className="flex items-start gap-3 rounded-md border border-transparent px-1 py-1.5 hover:border-border"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={t.done}
-                      onChange={() =>
-                        dispatch({ type: "TOGGLE_TASK", id: t.id })
-                      }
-                      className="mt-1 size-4 rounded border-border"
-                      aria-label={`Concluir ${t.title}`}
-                    />
-                    <button
-                      type="button"
-                      className={cn(
-                        "flex-1 text-left text-sm leading-snug",
-                        t.done && "text-muted-foreground line-through",
-                        state.activeTaskId === t.id &&
-                          "font-semibold text-foreground",
-                      )}
-                      onClick={() =>
-                        dispatch({ type: "SET_ACTIVE_TASK", id: t.id })
-                      }
-                    >
-                      {t.title}
-                    </button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="xs"
-                      className="shrink-0 text-muted-foreground"
-                      onClick={() =>
-                        dispatch({ type: "DELETE_TASK", id: t.id })
-                      }
-                    >
-                      Remover
-                    </Button>
-                  </li>
-                ))
-              )}
-            </ul>
-            {activeTask ? (
-              <p className="text-xs text-muted-foreground">
-                Ativa:{" "}
-                <span className="font-medium text-foreground">
-                  {activeTask.title}
-                </span>
-              </p>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                Sem tarefa ativa — selecione uma na lista.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/90 bg-card/80 shadow-none">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 font-heading text-lg font-semibold tracking-tight">
-              <StickyNote className="size-4 text-primary" aria-hidden />
-              Distrações
-            </CardTitle>
-            <CardDescription>
-              Se surgir algo urgente, registe e volte ao foco — sem parar o
-              relógio.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Textarea
-              placeholder="Anotação rápida…"
-              value={distractionDraft}
-              onChange={(e) => setDistractionDraft(e.target.value)}
-              rows={2}
-              className="resize-none font-sans text-sm"
-              disabled={state.mode !== "focus"}
-            />
-            <Button
-              type="button"
-              variant="secondary"
-              className="w-full font-sans"
-              disabled={state.mode !== "focus"}
-              onClick={() => {
-                dispatch({ type: "ADD_DISTRACTION", text: distractionDraft });
-                setDistractionDraft("");
-              }}
-            >
-              Registar e continuar
-            </Button>
-            <ul className="max-h-48 space-y-2 overflow-y-auto text-sm">
-              {state.distractions.length === 0 ? (
-                <li className="text-muted-foreground">
-                  Ainda sem notas de distração.
-                </li>
-              ) : (
-                state.distractions.map((d) => (
-                  <li
-                    key={d.id}
-                    className="flex items-start justify-between gap-2 rounded-md bg-muted/40 px-3 py-2"
-                  >
-                    <span className="leading-snug">{d.text}</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="xs"
-                      className="shrink-0"
-                      onClick={() =>
-                        dispatch({ type: "REMOVE_DISTRACTION", id: d.id })
-                      }
-                    >
-                      ✕
-                    </Button>
-                  </li>
-                ))
-              )}
-            </ul>
-          </CardContent>
-        </Card>
-      </aside>
     </div>
   );
 }
