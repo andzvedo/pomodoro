@@ -13,10 +13,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { usePomodoro } from "@/hooks/use-pomodoro";
+import { ALARM_SOUND_OPTIONS, previewAlarmSound } from "@/lib/chime";
+import { AUTO_CONTINUE_DELAY_SECONDS } from "@/lib/pomodoro-constants";
 import { formatMmSs } from "@/lib/format-time";
 import { modeDurationSeconds } from "@/lib/pomodoro-reducer";
-import type { PomodoroMode, PomodoroSettings } from "@/lib/pomodoro-types";
+import type { AlarmSoundId, PomodoroMode, PomodoroSettings } from "@/lib/pomodoro-types";
 import { cn } from "@/lib/utils";
 import { Pause, Play, RotateCcw, Settings2, SkipForward } from "lucide-react";
 
@@ -51,8 +54,17 @@ function modeDescription(mode: PomodoroMode): string {
 }
 
 export function PomodoroApp() {
-  const { state, dispatch, start, pause, reset, skipPhase, hydrated } =
-    usePomodoro();
+  const {
+    state,
+    dispatch,
+    start,
+    pause,
+    reset,
+    skipPhase,
+    hydrated,
+    autoStartCountdown,
+    cancelAutoContinue,
+  } = usePomodoro();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [draftSettings, setDraftSettings] = useState<PomodoroSettings>(
     state.settings,
@@ -142,11 +154,11 @@ export function PomodoroApp() {
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="font-heading text-lg tracking-tight">
-                Durações
+                Ajustes
               </DialogTitle>
               <DialogDescription>
-                Tempos sugeridos pela técnica: 25 / 5 / 20 minutos. Ajuste ao
-                seu ritmo.
+                Durações dos blocos e som ao terminar cada fase. Tempos típicos
+                da técnica: 25 / 5 / 20 minutos.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-2">
@@ -207,6 +219,81 @@ export function PomodoroApp() {
                   }
                 />
               </div>
+              <Separator />
+              <div className="grid gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                  <div className="grid min-w-0 flex-1 gap-2">
+                    <Label htmlFor="alarm-sound">Som do alarme</Label>
+                    <select
+                      id="alarm-sound"
+                      className={cn(
+                        "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors",
+                        "outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+                        "disabled:cursor-not-allowed disabled:opacity-50",
+                      )}
+                      value={draftSettings.alarmSound}
+                      onChange={(e) =>
+                        setDraftSettings((s) => ({
+                          ...s,
+                          alarmSound: e.target.value as AlarmSoundId,
+                        }))
+                      }
+                    >
+                      {ALARM_SOUND_OPTIONS.map((opt) => (
+                        <option key={opt.id} value={opt.id}>
+                          {opt.label} — {opt.description}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="shrink-0 font-sans"
+                    onClick={() =>
+                      previewAlarmSound(draftSettings.alarmSound)
+                    }
+                  >
+                    Ouvir exemplo
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  O alarme toca automaticamente quando o tempo de uma fase chega
+                  a zero.
+                </p>
+              </div>
+              <Separator />
+              <div className="flex items-start gap-3 rounded-lg border border-border/80 bg-muted/30 p-3">
+                <input
+                  type="checkbox"
+                  id="auto-continue"
+                  checked={draftSettings.autoContinueAfterPhase}
+                  onChange={(e) =>
+                    setDraftSettings((s) => ({
+                      ...s,
+                      autoContinueAfterPhase: e.target.checked,
+                    }))
+                  }
+                  className="mt-1 size-4 shrink-0 rounded border border-input"
+                  aria-describedby="auto-continue-desc"
+                />
+                <div className="grid min-w-0 gap-1">
+                  <Label
+                    htmlFor="auto-continue"
+                    className="cursor-pointer font-sans font-medium leading-snug"
+                  >
+                    Continuidade automática
+                  </Label>
+                  <p
+                    id="auto-continue-desc"
+                    className="text-xs leading-relaxed text-muted-foreground"
+                  >
+                    Inicia a fase seguinte {AUTO_CONTINUE_DELAY_SECONDS}{" "}
+                    segundos após o alarme ao fim da anterior (sem precisar de
+                    carregar em Iniciar).
+                  </p>
+                </div>
+              </div>
             </div>
             <DialogFooter className="border-0 bg-transparent p-4 sm:justify-between">
               <Button
@@ -241,11 +328,6 @@ export function PomodoroApp() {
             <br />
             foco profundo.
           </h1>
-          <p className="mx-auto mt-6 max-w-md text-base leading-relaxed text-muted-foreground">
-            Blocos de trabalho com pausas deliberadas. Uma marcação por pomodoro
-            concluído; ao quarto, pausa longa — como na versão original de
-            Francesco Cirillo.
-          </p>
         </div>
 
         <div className="relative flex w-full flex-col items-center">
@@ -299,6 +381,23 @@ export function PomodoroApp() {
           <p className="mt-8 max-w-sm text-center text-sm leading-relaxed text-muted-foreground">
             {modeDescription(state.mode)}
           </p>
+
+          {autoStartCountdown !== null && (
+            <div className="mt-6 flex flex-col items-center gap-2 text-center">
+              <p className="text-sm font-medium text-foreground" aria-live="polite">
+                A iniciar em {autoStartCountdown}s…
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="font-sans text-muted-foreground"
+                onClick={cancelAutoContinue}
+              >
+                Cancelar início automático
+              </Button>
+            </div>
+          )}
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Button

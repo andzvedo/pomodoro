@@ -1,5 +1,9 @@
 import type { PomodoroState } from "./pomodoro-types";
-import { createInitialState, DEFAULT_SETTINGS } from "./pomodoro-reducer";
+import {
+  createInitialState,
+  DEFAULT_SETTINGS,
+  normalizeAlarmSound,
+} from "./pomodoro-reducer";
 
 const STORAGE_KEY = "pomodoro-app-state-v1";
 
@@ -22,6 +26,11 @@ export function loadPomodoroState(): PomodoroState | null {
       settings: {
         ...DEFAULT_SETTINGS,
         ...parsed.settings,
+        alarmSound: normalizeAlarmSound(parsed.settings?.alarmSound),
+        autoContinueAfterPhase:
+          typeof parsed.settings?.autoContinueAfterPhase === "boolean"
+            ? parsed.settings.autoContinueAfterPhase
+            : DEFAULT_SETTINGS.autoContinueAfterPhase,
       },
     };
   } catch {

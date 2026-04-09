@@ -1,4 +1,5 @@
 import type {
+  AlarmSoundId,
   PomodoroMode,
   PomodoroSettings,
   PomodoroState,
@@ -9,7 +10,21 @@ export const DEFAULT_SETTINGS: PomodoroSettings = {
   focusMinutes: 25,
   shortBreakMinutes: 5,
   longBreakMinutes: 20,
+  alarmSound: "triple",
+  autoContinueAfterPhase: false,
 };
+
+export function normalizeAlarmSound(value: unknown): AlarmSoundId {
+  if (
+    value === "triple" ||
+    value === "digital" ||
+    value === "soft" ||
+    value === "beep"
+  ) {
+    return value;
+  }
+  return DEFAULT_SETTINGS.alarmSound;
+}
 
 export function modeDurationSeconds(
   mode: PomodoroMode,
@@ -76,7 +91,19 @@ export function pomodoroReducer(
 ): PomodoroState {
   switch (action.type) {
     case "HYDRATE":
-      return { ...action.state, isRunning: false };
+      return {
+        ...action.state,
+        isRunning: false,
+        settings: {
+          ...DEFAULT_SETTINGS,
+          ...action.state.settings,
+          alarmSound: normalizeAlarmSound(action.state.settings?.alarmSound),
+          autoContinueAfterPhase:
+            typeof action.state.settings?.autoContinueAfterPhase === "boolean"
+              ? action.state.settings.autoContinueAfterPhase
+              : DEFAULT_SETTINGS.autoContinueAfterPhase,
+        },
+      };
 
     case "START":
       return { ...state, isRunning: true };
