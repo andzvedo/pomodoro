@@ -19,6 +19,13 @@ Abra [http://localhost:3000](http://localhost:3000).
 | `npm run build`  | Build de produção           |
 | `npm run start`  | Servidor após build         |
 | `npm run lint`   | ESLint                      |
+| `npm run electron:dev` | Next + janela Electron (dev) |
+| `npm run electron:start` | Só Electron (Next já a correr) |
+| `npm run electron:build` | Empacota `.app`/`.dmg` (macOS) |
+
+### App desktop (macOS)
+
+Shell **Electron** que carrega a mesma UI (URL local ou deploy). Ver [`electron/README.md`](electron/README.md).
 
 ## Publicar no GitHub
 

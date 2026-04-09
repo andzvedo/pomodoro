@@ -2,11 +2,17 @@
   "name": "pomodoro",
   "version": "0.1.0",
   "private": true,
+  "description": "Temporizador Pomodoro — Next.js e shell Electron para macOS",
+  "author": "andzvedo",
+  "main": "electron/main.js",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "electron:start": "electron .",
+    "electron:dev": "concurrently -k \"next dev\" \"wait-on http://127.0.0.1:3000 && electron .\"",
+    "electron:build": "electron-builder --mac"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
@@ -28,6 +34,29 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "concurrently": "^9.2.0",
+    "electron": "^35.0.0",
+    "electron-builder": "^26.0.0",
+    "wait-on": "^8.0.1"
+  },
+  "build": {
+    "appId": "com.andzvedo.pomodoro",
+    "productName": "Pomodoro",
+    "files": [
+      "electron/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist-electron"
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "hardenedRuntime": true
+    }
   }
 }
