@@ -3,7 +3,7 @@ const path = require("path");
 
 /**
  * URL carregada pela janela.
- * - Desenvolvimento: http://127.0.0.1:3000 (Next em `npm run dev`)
+ * - Desenvolvimento: http://127.0.0.1:3000 (Next em `next start` ou `next dev`)
  * - Empacotado: definir ao construir, ex.: POMODORO_APP_URL=https://seu-app.vercel.app
  */
 function getStartUrl() {
@@ -28,7 +28,7 @@ function createWindow() {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
-      // sandbox: true quebra o Next em dev (Turbopack / scripts de refresh).
+      // sandbox: true pode quebrar alguns bundles em dev; em `next start` costuma ser OK.
       // Conteúdo é a nossa app (http); mantemos sem integração Node no renderer.
       sandbox: false,
     },
