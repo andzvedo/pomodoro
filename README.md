@@ -15,12 +15,14 @@ Abra [http://localhost:3000](http://localhost:3000).
 
 | Comando      | Descrição        |
 | ------------ | ---------------- |
-| `npm run dev`    | Servidor de desenvolvimento |
+| `npm run dev`    | Servidor de desenvolvimento (Turbopack) |
+| `npm run dev:webpack` | Next em modo Webpack (browser ou `electron:dev:hot`) |
 | `npm run build`  | Build de produção           |
 | `npm run start`  | Servidor após build         |
 | `npm run lint`   | ESLint                      |
-| `npm run electron:dev` | Next + janela Electron (dev) |
-| `npm run electron:start` | Só Electron (Next já a correr) |
+| `npm run electron:dev` | Build (se preciso) + `next start` + Electron — **caminho estável** |
+| `npm run electron:dev:hot` | `next dev --webpack` + Electron (HMR; pode falhar no Electron) |
+| `npm run electron:start` | Só Electron (Next já a correr em :3000) |
 | `npm run electron:build` | Empacota `.app`/`.dmg` (macOS) |
 
 ### App desktop (macOS)

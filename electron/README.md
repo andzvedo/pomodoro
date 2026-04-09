@@ -1,34 +1,48 @@
 # Pomodoro — shell Electron (macOS)
 
-## Desenvolvimento
+## Desenvolvimento (recomendado)
 
-1. Na raiz do repositório: `npm install`
-2. Executa **só** o comando (sem texto à frente na mesma linha):
+Na raiz do repositório:
 
 ```bash
+npm install
 npm run electron:dev
 ```
 
-Isto sobe o Next em `http://127.0.0.1:3000` e abre o Electron (script `electron/run-dev.mjs`).
+Por defeito o script faz **`next build`** (se ainda não existir `.next/BUILD_ID`, ou se usares `ELECTRON_FORCE_BUILD=1`) e depois **`next start`** na porta 3000, e só então abre o Electron. Isto **não usa** o WebSocket de HMR do `next dev`, que no Chromium do Electron costuma falhar (`ERR_INVALID_HTTP_RESPONSE`).
 
-**Alternativa em dois terminais:** `npm run dev` e, quando o Next estiver pronto, `npm run electron:start`.
+- **Primeira execução:** demora mais (build completo).
+- **Mudaste código e a janela está desatualizada:** `npm run build` ou `ELECTRON_FORCE_BUILD=1 npm run electron:dev`.
+- **Reabrir rápido sem rebuild:** `ELECTRON_SKIP_BUILD=1 npm run electron:dev` (só se já tiveres um `.next` válido).
 
-> Não coloques comentários (`# …`) na mesma linha que `npm run …` no terminal — o zsh pode interpretar mal o comando.
+### Modo com hot reload (opcional, pode falhar)
+
+```bash
+npm run electron:dev:hot
+```
+
+Equivale a `ELECTRON_USE_NEXT_DEV=1` + `next dev --webpack`. Usa só se precisares de HMR; se voltar a falhar, volta ao `npm run electron:dev`.
+
+### Dois terminais (manual)
+
+1. `npm run build` (uma vez ou após alterações)
+2. `npm run start`
+3. Noutro terminal: `npm run electron:start`
+
+> Não coloques comentários (`# …`) na mesma linha que `npm run …` no zsh — pode interpretar mal o comando.
 
 ### Depuração
 
-Em **localhost**, as DevTools abrem automaticamente (podes fechar o painel). Para forçar noutro URL:
+Em **localhost**, as DevTools abrem automaticamente. Para forçar noutro URL:
 
 ```bash
 ELECTRON_OPEN_DEVTOOLS=1 npm run electron:start
 ```
 
-A UI do Pomodoro carrega com **`next/dynamic` + `ssr: false`** para evitar bloqueios de hidratação no Electron (`localStorage` + timers).
-
 ## URL carregada
 
 - Por defeito: `http://127.0.0.1:3000`
-- Para apontar para produção (teste local do instalador):  
+- Produção (teste do instalador):  
   `POMODORO_APP_URL=https://seu-dominio.vercel.app npm run electron:start`
 
 ## Build `.app` / `.dmg` (macOS)

@@ -7,11 +7,13 @@
   "main": "electron/main.js",
   "scripts": {
     "dev": "next dev",
+    "dev:webpack": "next dev --webpack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "electron:start": "electron .",
     "electron:dev": "node electron/run-dev.mjs",
+    "electron:dev:hot": "ELECTRON_USE_NEXT_DEV=1 node electron/run-dev.mjs",
     "electron:build": "electron-builder --mac"
   },
   "dependencies": {
