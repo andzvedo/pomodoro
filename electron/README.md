@@ -3,9 +3,17 @@
 ## Desenvolvimento
 
 1. Na raiz do repositório: `npm install`
-2. `npm run electron:dev` — sobe o Next em `http://127.0.0.1:3000` e abre a janela Electron.
+2. Executa **só** o comando (sem texto à frente na mesma linha):
 
-Ou em dois terminais: `npm run dev` e, quando o Next estiver pronto, `npm run electron:start`.
+```bash
+npm run electron:dev
+```
+
+Isto sobe o Next em `http://127.0.0.1:3000` e abre o Electron (script `electron/run-dev.mjs`).
+
+**Alternativa em dois terminais:** `npm run dev` e, quando o Next estiver pronto, `npm run electron:start`.
+
+> Não coloques comentários (`# …`) na mesma linha que `npm run …` no terminal — o zsh pode interpretar mal o comando.
 
 ## URL carregada
 

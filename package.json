@@ -11,7 +11,7 @@
     "start": "next start",
     "lint": "eslint",
     "electron:start": "electron .",
-    "electron:dev": "concurrently -k \"next dev\" \"wait-on http://127.0.0.1:3000 && electron .\"",
+    "electron:dev": "node electron/run-dev.mjs",
     "electron:build": "electron-builder --mac"
   },
   "dependencies": {
@@ -35,7 +35,6 @@
     "eslint-config-next": "16.2.2",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "concurrently": "^9.2.0",
     "electron": "^35.0.0",
     "electron-builder": "^26.0.0",
     "wait-on": "^8.0.1"
