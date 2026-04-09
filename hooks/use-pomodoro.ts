@@ -8,7 +8,8 @@ import {
   useState,
   startTransition,
 } from "react";
-import { playPhaseChime } from "@/lib/chime";
+import { playPhaseAlarm, primeAlarmAudio } from "@/lib/chime";
+import { AUTO_CONTINUE_DELAY_SECONDS } from "@/lib/pomodoro-constants";
 import {
   createInitialState,
   pomodoroReducer,
@@ -31,7 +32,61 @@ export function usePomodoro() {
     undefined,
     () => createInitialState(),
   );
+  const [autoStartCountdown, setAutoStartCountdown] = useState<number | null>(
+    null,
+  );
+
   const endAtRef = useRef<number | null>(null);
+  const alarmSoundRef = useRef(state.settings.alarmSound);
+  const stateRef = useRef(state);
+  const autoStartIntervalRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  useEffect(() => {
+    alarmSoundRef.current = state.settings.alarmSound;
+  }, [state.settings.alarmSound]);
+
+  const clearAutoContinueSchedule = useCallback(() => {
+    if (autoStartIntervalRef.current !== null) {
+      clearInterval(autoStartIntervalRef.current);
+      autoStartIntervalRef.current = null;
+    }
+    setAutoStartCountdown(null);
+  }, []);
+
+  const start = useCallback(() => {
+    clearAutoContinueSchedule();
+    primeAlarmAudio();
+    endAtRef.current = Date.now() + stateRef.current.secondsRemaining * 1000;
+    dispatch({ type: "START" });
+  }, [clearAutoContinueSchedule]);
+
+  const scheduleAutoContinue = useCallback(() => {
+    clearAutoContinueSchedule();
+    let remaining = AUTO_CONTINUE_DELAY_SECONDS;
+    setAutoStartCountdown(remaining);
+    autoStartIntervalRef.current = window.setInterval(() => {
+      remaining -= 1;
+      if (remaining <= 0) {
+        if (autoStartIntervalRef.current !== null) {
+          clearInterval(autoStartIntervalRef.current);
+          autoStartIntervalRef.current = null;
+        }
+        setAutoStartCountdown(null);
+        start();
+      } else {
+        setAutoStartCountdown(remaining);
+      }
+    }, 1000);
+  }, [clearAutoContinueSchedule, start]);
+
+  const scheduleAutoContinueRef = useRef(scheduleAutoContinue);
+  useEffect(() => {
+    scheduleAutoContinueRef.current = scheduleAutoContinue;
+  }, [scheduleAutoContinue]);
 
   useEffect(() => {
     const saved = loadPomodoroState();
@@ -49,6 +104,22 @@ export function usePomodoro() {
   }, [state, hydrated]);
 
   useEffect(() => {
+    if (!state.settings.autoContinueAfterPhase) {
+      queueMicrotask(() => {
+        clearAutoContinueSchedule();
+      });
+    }
+  }, [state.settings.autoContinueAfterPhase, clearAutoContinueSchedule]);
+
+  useEffect(() => {
+    return () => {
+      if (autoStartIntervalRef.current !== null) {
+        clearInterval(autoStartIntervalRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (!state.isRunning) return;
     const tick = () => {
       if (!endAtRef.current) return;
@@ -58,8 +129,13 @@ export function usePomodoro() {
       );
       if (rem <= 0) {
         endAtRef.current = null;
-        playPhaseChime();
+        const shouldAutoContinue =
+          stateRef.current.settings.autoContinueAfterPhase;
+        playPhaseAlarm(alarmSoundRef.current);
         dispatch({ type: "PHASE_COMPLETE" });
+        if (shouldAutoContinue) {
+          scheduleAutoContinueRef.current();
+        }
         return;
       }
       dispatch({ type: "TICK", secondsRemaining: rem });
@@ -70,6 +146,12 @@ export function usePomodoro() {
   }, [state.isRunning]);
 
   useEffect(() => {
+    if (autoStartCountdown !== null) {
+      document.title = `A iniciar em ${autoStartCountdown}s… — Pomodoro`;
+      return () => {
+        document.title = "Pomodoro";
+      };
+    }
     const label =
       state.mode === "focus"
         ? "Foco"
@@ -85,12 +167,7 @@ export function usePomodoro() {
     return () => {
       document.title = "Pomodoro";
     };
-  }, [state.mode, state.secondsRemaining]);
-
-  const start = useCallback(() => {
-    endAtRef.current = Date.now() + state.secondsRemaining * 1000;
-    dispatch({ type: "START" });
-  }, [state.secondsRemaining]);
+  }, [state.mode, state.secondsRemaining, autoStartCountdown]);
 
   const pause = useCallback(() => {
     if (endAtRef.current) {
@@ -107,13 +184,29 @@ export function usePomodoro() {
 
   const reset = useCallback(() => {
     endAtRef.current = null;
+    clearAutoContinueSchedule();
     dispatch({ type: "RESET", confirmDiscard: true });
-  }, []);
+  }, [clearAutoContinueSchedule]);
 
   const skipPhase = useCallback(() => {
     endAtRef.current = null;
+    clearAutoContinueSchedule();
     dispatch({ type: "SKIP_PHASE" });
-  }, []);
+  }, [clearAutoContinueSchedule]);
 
-  return { state, dispatch, start, pause, reset, skipPhase, hydrated };
+  const cancelAutoContinue = useCallback(() => {
+    clearAutoContinueSchedule();
+  }, [clearAutoContinueSchedule]);
+
+  return {
+    state,
+    dispatch,
+    start,
+    pause,
+    reset,
+    skipPhase,
+    hydrated,
+    autoStartCountdown,
+    cancelAutoContinue,
+  };
 }

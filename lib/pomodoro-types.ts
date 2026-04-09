@@ -1,9 +1,15 @@
 export type PomodoroMode = "focus" | "shortBreak" | "longBreak";
 
+/** Identificador do som ao terminar uma fase. */
+export type AlarmSoundId = "triple" | "digital" | "soft" | "beep";
+
 export type PomodoroSettings = {
   focusMinutes: number;
   shortBreakMinutes: number;
   longBreakMinutes: number;
+  alarmSound: AlarmSoundId;
+  /** Se true, após o fim de uma fase inicia a seguinte sozinha após AUTO_CONTINUE_DELAY_SECONDS. */
+  autoContinueAfterPhase: boolean;
 };
 
 export type Task = {
