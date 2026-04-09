@@ -28,7 +28,9 @@ function createWindow() {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: true,
+      // sandbox: true quebra o Next em dev (Turbopack / scripts de refresh).
+      // Conteúdo é a nossa app (http); mantemos sem integração Node no renderer.
+      sandbox: false,
     },
   });
 
@@ -37,6 +39,28 @@ function createWindow() {
   });
 
   const startUrl = getStartUrl();
+
+  mainWindow.webContents.on(
+    "did-fail-load",
+    (_event, errorCode, errorDescription, validatedURL) => {
+      console.error(
+        "[electron] Falha ao carregar página:",
+        validatedURL,
+        errorCode,
+        errorDescription,
+      );
+    },
+  );
+
+  const isLocalDev =
+    startUrl.includes("127.0.0.1") || startUrl.includes("localhost");
+  if (
+    isLocalDev ||
+    process.env.ELECTRON_OPEN_DEVTOOLS === "1"
+  ) {
+    mainWindow.webContents.openDevTools({ mode: "detach" });
+  }
+
   mainWindow.loadURL(startUrl).catch((err) => {
     console.error("[electron] Falha ao carregar URL:", startUrl, err);
   });

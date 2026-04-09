@@ -1,5 +1,5 @@
-import { PomodoroApp } from "@/components/pomodoro/pomodoro-app";
+import { PomodoroClient } from "./pomodoro-client";
 
 export default function Home() {
-  return <PomodoroApp />;
+  return <PomodoroClient />;
 }

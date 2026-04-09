@@ -15,6 +15,16 @@ Isto sobe o Next em `http://127.0.0.1:3000` e abre o Electron (script `electron/
 
 > Não coloques comentários (`# …`) na mesma linha que `npm run …` no terminal — o zsh pode interpretar mal o comando.
 
+### Depuração
+
+Em **localhost**, as DevTools abrem automaticamente (podes fechar o painel). Para forçar noutro URL:
+
+```bash
+ELECTRON_OPEN_DEVTOOLS=1 npm run electron:start
+```
+
+A UI do Pomodoro carrega com **`next/dynamic` + `ssr: false`** para evitar bloqueios de hidratação no Electron (`localStorage` + timers).
+
 ## URL carregada
 
 - Por defeito: `http://127.0.0.1:3000`

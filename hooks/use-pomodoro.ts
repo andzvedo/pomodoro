@@ -6,7 +6,6 @@ import {
   useReducer,
   useRef,
   useState,
-  startTransition,
 } from "react";
 import { playPhaseAlarm, primeAlarmAudio } from "@/lib/chime";
 import { AUTO_CONTINUE_DELAY_SECONDS } from "@/lib/pomodoro-constants";
@@ -25,12 +24,30 @@ function reducerWithInit(
   return pomodoroReducer(state, action);
 }
 
+/** Estado inicial no cliente: localStorage sem passo de hidratação assíncrona (evita bloqueio no Electron). */
+function createClientInitialState(): PomodoroState {
+  if (typeof window === "undefined") {
+    return createInitialState();
+  }
+  try {
+    const saved = loadPomodoroState();
+    if (saved) {
+      return pomodoroReducer(createInitialState(), {
+        type: "HYDRATE",
+        state: saved,
+      });
+    }
+  } catch {
+    /* ignore */
+  }
+  return createInitialState();
+}
+
 export function usePomodoro() {
-  const [hydrated, setHydrated] = useState(false);
   const [state, dispatch] = useReducer(
     reducerWithInit,
     undefined,
-    () => createInitialState(),
+    createClientInitialState,
   );
   const [autoStartCountdown, setAutoStartCountdown] = useState<number | null>(
     null,
@@ -89,19 +106,8 @@ export function usePomodoro() {
   }, [scheduleAutoContinue]);
 
   useEffect(() => {
-    const saved = loadPomodoroState();
-    startTransition(() => {
-      if (saved) {
-        dispatch({ type: "HYDRATE", state: saved });
-      }
-      setHydrated(true);
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!hydrated) return;
     savePomodoroState(state);
-  }, [state, hydrated]);
+  }, [state]);
 
   useEffect(() => {
     if (!state.settings.autoContinueAfterPhase) {
@@ -205,7 +211,6 @@ export function usePomodoro() {
     pause,
     reset,
     skipPhase,
-    hydrated,
     autoStartCountdown,
     cancelAutoContinue,
   };

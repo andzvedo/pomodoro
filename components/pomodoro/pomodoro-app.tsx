@@ -61,7 +61,6 @@ export function PomodoroApp() {
     pause,
     reset,
     skipPhase,
-    hydrated,
     autoStartCountdown,
     cancelAutoContinue,
   } = usePomodoro();
@@ -130,14 +129,6 @@ export function PomodoroApp() {
     const offset = c * (1 - progress);
     return { strokeDasharray: `${c}px`, strokeDashoffset: `${offset}px` };
   }, [progress]);
-
-  if (!hydrated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center font-sans text-muted-foreground">
-        Carregando…
-      </div>
-    );
-  }
 
   return (
     <div className="relative mx-auto flex min-h-screen w-full flex-col items-center gap-12 px-6 py-14 md:px-10 lg:py-20">
